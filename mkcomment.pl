@@ -14,7 +14,7 @@ USAGE: $0 [--width=80 --hpad=3 --wpad=3 --style=pxx] <message>
 	--width: wrap at width
 	--hpad: provide HPAD lines above and below header
 	--wpad: provide comment char WPAD times on the beginning and end of line
-	--style: comment style, pxx or cpp
+	--style: comment style, pxx, cpp, or c89
 EOM
 
 if (grep $_ =~ /^-h|--help$/, @ARGV) {
@@ -31,7 +31,9 @@ GetOptions(
 my $COMMENT_CHAR;
 if ($style =~ /pxx/i) {
 	$COMMENT_CHAR = '#';
-} else {
+} elsif ($style =~ /c89/i) {
+    $COMMENT_CHAR = '*';
+} elsif ($style =~ /cpp/i) {
 	$COMMENT_CHAR='/';
 	if ($wpad < 2) {
 		$wpad = 2;
@@ -63,5 +65,16 @@ foreach my $i (1..$hpad) {
 	unshift @lines, $hdrftr;
 }
 
+if ($style =~ /c89/i) {
+    substr($lines[0], 0, 1) = '/';
+    substr($lines[-1], -1, 1) = '/';
+    foreach my $line (@lines[1..$#lines]) {
+        substr($line, 0, 1) = ' ';
+    }
+    foreach my $line (@lines[0..$#lines-1]) {
+        substr($line, -1, 1) = '';
+    }
+}
+
 $message = join("\n", @lines);
-print $message;
+print $message . "\n";
